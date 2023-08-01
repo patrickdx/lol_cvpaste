@@ -3,44 +3,54 @@ import time
 import pynput
 from pynput.keyboard import Key, Controller
 import os
+from bind_keys import bindable
 
 # usage: cvpaste.py spam.txt
 
-
+bindings = {}
 
 
 # prints msg in-game chat
-def printer(message : str):
+def printer(key_pressed):
+    message = bindings[key_pressed].split('\n')      # list of idividual lines in the message 
+
     for line in message:
-        if (line == '\n'): continue         # cant write newline anyways
         keyboard.press(Key.enter)
         keyboard.release(Key.enter)
         time.sleep(0.02)
-        keyboard.type(line)     # \n is interepted as 'enter'
+
+        keyboard.type(line)   
+
+        keyboard.press(Key.enter)
+        keyboard.release(Key.enter)
         time.sleep(0.02)
         
 
-# sets keybinds to msgs
-def binds(keys, msgs : list[str]):
-    if (len(keys) != len(msgs)): raise Exception("Number of keys does not correspond to number of messages")
-    for key, msg in zip(keys, msgs):
+# parses file.txt and assigns messages to keybinds
+def loadFile(binds : list[Key], file):
+
+    with open(file, 'r', encoding='utf8') as f:
+        text = f.read()
+        emptyLine = '\n\n'     # empty line acts as a seperator for 2 texts
+        msgs = text.split(emptyLine)
+
+    if (len(msgs) != len(bindable)): print('could not have bound all keys/messages')
+    
+    for key, msg in zip(bindable, msgs):     # zip returns the minimum working tuple length
         bindings[key] = msg
+    
+    print(f"binded keys: {bindings}")
 
-
-
+        
 def on_press(key):
     print(key)
-    if (key in bindings): printer(bindings[key])
+    if (key in bindings):
+        printer(key)
     if (key == Key.esc): exit()
     
 
-def on_release(key):
-    pass
-
-
 
 keyboard = Controller()
-msg = []
 time.sleep(1)
 all_chat = False
 
@@ -53,22 +63,14 @@ except IndexError:
 if (not os.path.isfile(f)):
     raise FileNotFoundError("passed text file does not exist :(")
 
+# file is read once per program execution
+loadFile()
 
-
-
-# read in text from file once 
-with open(f, 'r', encoding='utf8') as file:   # auto closes when done reading
-    msg = [line for line in file]
-    msg[-1] +=  '\n'         # this is for closing chatbox
-    print(msg)
-
-bindings = {Key.page_down : msg} 
 
 
 # blocking thread; Collect events until released
 with pynput.keyboard.Listener(
-        on_press=on_press,
-        on_release=on_release) as listener:
+        on_press=on_press) as listener:
     print("\nlistening...")
     listener.join()
 
@@ -77,4 +79,5 @@ with pynput.keyboard.Listener(
 # listener = pynput.keyboard.Listener( on_press=on_press, on_release=on_release) 
 # listener.start()
 # print('\nlistening...')
+
 
