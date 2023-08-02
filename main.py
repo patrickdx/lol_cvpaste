@@ -14,14 +14,12 @@ bindings = {}
 def printer(key_pressed):
     
     message = bindings[key_pressed].split('\n')      # list of individual lines in the message 
-    print(message)
 
     for line in message:
         keyboard.press(Key.enter)
         keyboard.release(Key.enter)
         time.sleep(0.02)
 
-        print(line[0])
         if (line[0] == '/'): line = " " + line      # to prevent writing an command
         keyboard.type(line)   
 
