@@ -12,13 +12,17 @@ bindings = {}
 
 # prints msg in-game chat
 def printer(key_pressed):
-    message = bindings[key_pressed].split('\n')      # list of idividual lines in the message 
+    
+    message = bindings[key_pressed].split('\n')      # list of individual lines in the message 
+    print(message)
 
     for line in message:
         keyboard.press(Key.enter)
         keyboard.release(Key.enter)
         time.sleep(0.02)
 
+        print(line[0])
+        if (line[0] == '/'): line = " " + line      # to prevent writing an command
         keyboard.type(line)   
 
         keyboard.press(Key.enter)
@@ -30,7 +34,7 @@ def printer(key_pressed):
 def loadFile(binds : list[Key], file):
 
     with open(file, 'r', encoding='utf8') as f:
-        text = f.read()
+        text = f.read().rstrip()
         emptyLine = '\n\n'     # empty line acts as a seperator for 2 texts
         msgs = text.split(emptyLine)
 
@@ -38,14 +42,20 @@ def loadFile(binds : list[Key], file):
     
     for key, msg in zip(bindable, msgs):     # zip returns the minimum working tuple length
         bindings[key] = msg
-    
-    print(f"binded keys: {bindings}")
 
-        
+    printBindings()
+    
+
+def printBindings():
+    print('bindings:\n')
+    for k,v in bindings.items():
+        print(f'{k}  ->  {v}\n')
+
+
+
+
 def on_press(key):
-    print(key)
-    if (key in bindings):
-        printer(key)
+    if (key in bindings): printer(key)
     if (key == Key.esc): exit()
     
 
@@ -64,7 +74,7 @@ if (not os.path.isfile(f)):
     raise FileNotFoundError("passed text file does not exist :(")
 
 # file is read once per program execution
-loadFile()
+loadFile(bindable, f)
 
 
 
